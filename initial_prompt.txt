@@ -1,0 +1,21 @@
+Build Phase 1 of the PSA Discord Task Bot from scratch following CLAUDE.md exactly.
+
+Set up the project: package.json with discord.js, better-sqlite3, and dotenv. Create .env.example with placeholder values for DISCORD_BOT_TOKEN, GUILD_ID, and TASK_CHANNEL_ID. Create .gitignore (node_modules, .env, *.db).
+
+Then build in this order:
+
+1. src/db.js — SQLite setup with the members and tasks tables from CLAUDE.md. Include helper functions: addAlias, removeAlias, listAliases, resolveAlias (takes a name, returns discord_id or null), addTask, getTask, updateTaskStatus, getTasksByMember, getTasksByStatus, getTaskByMessageId.
+
+2. src/index.js — Discord client with GatewayIntentBits for Guilds, GuildMessages, GuildMessageReactions, MessageContent. Load dotenv. On ready: register all slash commands to the guild (not global). Route interactions to command handlers. Set up the messageReactionAdd listener.
+
+3. src/commands/alias.js — /alias command with add, remove, list subcommands per CLAUDE.md spec. List is ephemeral.
+
+4. src/commands/task.js — /task command. Parse the responsible field by splitting on commas, trimming, and resolving each alias via db. Format and send the task message using the exact format from CLAUDE.md (bullet, description, Responsible with <@ID> mentions, Deadline). Store in DB. React with ✅.
+
+5. src/commands/taskbulk.js — /taskbulk opens a modal with Category (short text) and Tasks (paragraph). On submit, parse the tasks text into blocks separated by blank lines where each block has a description line, a "responsible:" line, and a "deadline:" line. Post one message with bold category header and all tasks formatted. Store each in DB. React with ✅.
+
+6. src/commands/tasks.js — /tasks with list, done, mine subcommands. "done" edits the original Discord message to strikethrough the description and updates DB status.
+
+7. src/events/reactionAdd.js — When someone reacts ✅ on a task message, check if they're a responsible member. If yes, mark done and edit message. Handle partials (fetch message if partial).
+
+Make sure all commands are properly registered using SlashCommandBuilder with subcommands where needed. Test that the bot can start with `node src/index.js`.
